@@ -19,3 +19,20 @@ The issue has a defined outcome, identifies the main files involved, and is esti
 **Setup confirmation:** [x] App runs locally at localhost:5173
 
 **Cohort ledger:** [x] Issue added to cohort ledger
+
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/AhmadM2409/pathreview/commit/b99efe6
+
+**Reproduction summary:**
+
+I reproduced the issue with a failing unit test that submits the same README twice through the ingestion pipeline. The test showed that both submissions were parsed, chunked, and embedded because the pipeline does not persist ingestion metadata for the duplicate check.
+
+**PLAN.md link:** https://github.com/AhmadM2409/pathreview/blob/feat/13-content-hash-skip-reembedding/PLAN.md
+
+**Walkthrough video (recommended):** Not recorded
+
+**Blockers or open questions:**
+
+I still need to confirm the project’s database transaction convention before deciding whether `_record_ingested_source()` should call `flush()` or `commit()`. I also need to determine which fields should identify a duplicate README so identical content from different repositories or profiles is not skipped incorrectly.
