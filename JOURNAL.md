@@ -36,3 +36,19 @@ I reproduced the issue with a failing unit test that submits the same README twi
 **Blockers or open questions:**
 
 I still need to confirm the project’s database transaction convention before deciding whether `_record_ingested_source()` should call `flush()` or `commit()`. I also need to determine which fields should identify a duplicate README so identical content from different repositories or profiles is not skipped incorrectly.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+
+I implemented full SHA-256 README deduplication in the ingestion pipeline. The pipeline now queries and saves the real `IngestedSource` model, scopes duplicate checks by profile, repository, source type, and content hash, and stores the repository name in `source_url`. The focused ingestion tests now pass with 7 tests covering duplicate skips, changed content, different profiles, different repositories, persisted metadata, byte hashing, and lookup failure handling.
+
+**Next steps:**
+
+Next I need to review the full diff, create logical commits, push the branch, open a draft PR, request peer or mentor feedback, address any agreed feedback, rerun validation, complete Check-in 2, and finalize the PR.
+
+**Blockers:**
+
+There are no blockers specific to Issue #13. `make test-unit` currently reports 53 unrelated failures outside the changed Issue #13 test file, and `make check` currently reports 178 unrelated repository-wide Ruff errors. The changed Issue #13 files pass their focused tests, Ruff, Black, and diff validation.

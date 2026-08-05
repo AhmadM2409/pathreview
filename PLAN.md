@@ -19,21 +19,21 @@ Expected files and code paths involved:
 * `core/models/ingested_source.py`
 
   * Existing `IngestedSource` model
-  * Existing `content_hash` field
+  * Existing `source_url`, `content_hash`, and `chunk_count` fields
 * `tests/unit/test_ingestion_pipeline.py`
 
   * Reproduction test for submitting an identical README twice
   * Additional tests for changed content and database behavior
-* Potentially an existing database-session or model-import module if required to avoid circular imports
+* Existing service code that shows the caller owns database commits
 
-A database migration is not currently expected because the `IngestedSource` model already contains a `content_hash` column.
+A database migration is not needed because the `IngestedSource` model and initial Alembic migration already contain the required fields.
 
 ### Plan
 
 1. Import and use the actual `IngestedSource` SQLAlchemy model in the ingestion pipeline instead of querying the string `"IngestedSource"`.
 2. Compute the full content hash once during ingestion and pass it separately to the duplicate-check and persistence methods.
-3. Update `_check_skip()` so it queries for a matching ingested source using the relevant identity fields, including `profile_id`, `source_type`, and `content_hash`.
-4. Update `_record_ingested_source()` so it creates an `IngestedSource` record, adds it to the database session, and commits or flushes it according to the project’s existing transaction conventions.
+3. Update `_check_skip()` so it queries for a matching ingested source using `profile_id`, `source_type`, `source_url`, and `content_hash`.
+4. Update `_record_ingested_source()` so it creates an `IngestedSource` record and adds it to the database session without committing, because the service or caller layer owns the transaction.
 5. Expand `tests/unit/test_ingestion_pipeline.py` so it verifies:
 
    * the first README ingestion is processed;
@@ -65,11 +65,12 @@ A database migration is not currently expected because the `IngestedSource` mode
 
 ### Risks & unknowns
 
-* The pipeline may currently rely on transaction ownership outside `_record_ingested_source()`, so calling `commit()` directly could conflict with existing session-management conventions. I need to inspect how other services add and persist SQLAlchemy models before choosing between `add()`, `flush()`, and `commit()`.
-* Duplicate matching may need more than `profile_id`, `source_type`, and `content_hash`. README records may also need repository identity such as `source_url`, `filename`, or repository name to avoid incorrectly treating the same content in two different repositories as one source.
-* The current `source_id` is not represented as a field on `IngestedSource`, so the skip implementation may need to rely entirely on model fields rather than the generated `source_id`.
-* Resume and repository metadata ingestion use the same placeholder helper methods. Changing shared methods could affect those ingestion paths, so tests should verify that the implementation remains compatible with all source types.
-* Importing `IngestedSource` directly into `ingestion/pipeline.py` could expose a circular import, which must be checked before implementation.
+* Resolved: the pipeline should call `db_session.add()` but should not call `commit()`, because existing service code owns transaction commits.
+* Resolved: README duplicate matching uses `profile_id`, `source_type`, `source_url` with `repo_name`, and the full SHA-256 `content_hash`.
+* Resolved: the current `source_id` is not represented as a field on `IngestedSource`, so duplicate lookup relies on real persisted model fields.
+* Resolved: importing `IngestedSource` directly into `ingestion/pipeline.py` did not create a circular import.
+* Focused tests now confirm unchanged README content is skipped while changed content, different profiles, and different repositories are processed.
+* Repository-wide unit and lint failures remain pre-existing and unrelated to Issue #13.
 
 ### Edge cases
 
