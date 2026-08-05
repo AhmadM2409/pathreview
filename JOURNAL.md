@@ -52,3 +52,21 @@ Next I need to review the full diff, create logical commits, push the branch, op
 **Blockers:**
 
 There are no blockers specific to Issue #13. `make test-unit` currently reports 53 unrelated failures outside the changed Issue #13 test file, and `make check` currently reports 178 unrelated repository-wide Ruff errors. The changed Issue #13 files pass their focused tests, Ruff, Black, and diff validation.
+
+### Check-in 2 (end of week)
+
+**What I completed:**
+
+I completed the implementation for Issue #13 and opened PR #873. The ingestion pipeline now stores full SHA-256 content hashes and skips parsing, chunking, and embedding when the same README content has already been processed for the same profile and repository. I also added focused unit tests for unchanged content, changed content, different profiles, different repositories, persisted metadata, byte input, and database lookup failures.
+
+**Validation results:**
+
+The 7 focused ingestion pipeline tests pass. Ruff and Black pass on the changed Python files, and `git diff --check` passes. The full repository commands still report unrelated pre-existing failures outside the files changed for Issue #13.
+
+**Feedback and changes:**
+
+I requested feedback on the draft pull request. No feedback was received before submission, so no additional code changes were required.
+
+**Final PR:**
+
+https://github.com/ascherj/pathreview/pull/873
