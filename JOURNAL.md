@@ -70,3 +70,41 @@ A classmate reviewed the pull request and confirmed that the duplicate lookup is
 **Final PR:**
 
 https://github.com/ascherj/pathreview/pull/873
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+
+No official maintainer review or requested changes were received before the Week 10 reflection. The pull request remains open and ready for review. A classmate reviewed the implementation during the Week 9 peer-feedback process and did not identify any blocking issues, but no additional maintainer feedback required code changes.
+
+**How you responded:**
+
+No additional code changes were required because no official maintainer feedback was received.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+
+The hardest part was understanding how the existing ingestion pipeline, database model, and transaction ownership fit together before making the change. At first, the issue sounded like simply creating a SHA-256 hash and comparing it. The more difficult part was determining where the hash should be persisted, which fields should define the identity of an already-ingested README, and whether the pipeline should commit, flush, or only add the database record. I also had to separate failures caused by my change from existing repository-wide test, Ruff, and mypy failures.
+
+**What did you learn about working in a large codebase?**
+
+I learned that making a small change in a larger codebase requires understanding the surrounding conventions before writing code. In my own projects, I can choose how transactions, models, and tests are structured. In PathReview, I needed to inspect existing service patterns and follow the design already used by the project. I also learned that passing one focused test is not enough by itself. I had to check the broader diff, formatting, linting, transaction behavior, and whether the change could affect other profiles or repositories.
+
+**How did AI tools help — and where did they fall short?**
+
+AI tools were most useful for exploring the repository, tracing the ingestion flow, identifying relevant files, explaining unfamiliar patterns, creating focused tests, and reviewing the final diff. They also helped me break the work into smaller steps instead of trying to implement everything at once. The limitation was that AI could not automatically know which project conventions were correct without inspecting the actual code. I still had to verify transaction ownership, model fields, existing failures, Git state, and the final GitHub PR myself. AI suggestions were useful starting points, but they still needed to be checked against the repository.
+
+**What would you do differently if you started over?**
+
+I would begin with a smaller reproduction test and spend more time tracing the database flow before thinking about the implementation. Early on, I focused on the hashing behavior, but the important design questions were how the ingestion record was stored and how duplicate identity should be scoped. Understanding those pieces earlier would have reduced some back-and-forth and made the implementation more direct.
+
+**What are you most proud of from this module?**
+
+I am most proud that I took an issue from reproduction through planning, implementation, testing, documentation, and a real pull request against an existing project. The final change stayed focused on Issue #13 and included tests for duplicate content, changed content, different profiles, and different repositories instead of only testing the easiest successful case.
